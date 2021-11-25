@@ -1,0 +1,47 @@
+plugins {
+    id 'org.springframework.boot' version '2.6.0'
+    id 'io.freefair.lombok' version '6.2.0'
+}
+
+apply plugin: 'java'
+apply plugin: 'java-library'
+apply plugin: 'maven-publish'
+apply plugin: 'org.springframework.boot'
+apply plugin: 'io.spring.dependency-management'
+
+dependencies {
+    compileOnly group: 'org.jetbrains', name: 'annotations', version: JETBRAINS_ANNOTATIONS_VERSION
+
+    api group: 'org.springframework.boot', name: 'spring-boot-starter'
+
+    api group: 'io.rsocket', name: 'rsocket-core', version: RSOCKET_VERSION
+    api group: 'io.rsocket', name: 'rsocket-transport-netty', version: RSOCKET_VERSION
+
+    api group: 'io.rsocket.rpc', name: 'rsocket-ipc-core', version: RSOCKET_IPC_VERSION
+    api group: 'io.rsocket.rpc', name: 'rsocket-ipc-protobuf', version: RSOCKET_IPC_VERSION
+
+    api group: 'io.rsocket.rpc', name: 'rsocket-rpc-core', version: RSOCKET_RPC_VERSION
+    api group: 'io.rsocket.rpc', name: 'rsocket-rpc-protobuf', version: RSOCKET_RPC_VERSION
+
+    api group: 'com.google.protobuf', name: 'protobuf-java', version: PROTOBUF_VERSION
+
+    api group: 'com.iamceph.resulter', name: 'resulter', version: RESULTER_VERSION
+
+    annotationProcessor group: 'org.springframework.boot', name: 'spring-boot-configuration-processor'
+}
+
+test {
+    useJUnitPlatform()
+}
+
+bootJar {
+    enabled = false
+}
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            from components.java
+        }
+    }
+}

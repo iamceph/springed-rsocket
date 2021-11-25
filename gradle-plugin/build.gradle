@@ -1,0 +1,30 @@
+plugins {
+    id 'groovy'
+    id 'java-gradle-plugin'
+    id 'maven-publish'
+}
+
+defaultTasks 'clean', 'build'
+
+def publishing = System.getenv("PUBLISHING") == "1"
+if (!publishing) {
+    defaultTasks.add('publishToMavenLocal')
+} else {
+    defaultTasks.add('publish')
+}
+
+dependencies {
+    compileOnly gradleApi()
+    compileOnly localGroovy()
+
+    api group: 'com.google.protobuf', name: 'protobuf-gradle-plugin', version: PROTOBUF_PLUGIN_VERSION
+}
+
+gradlePlugin {
+    plugins {
+        springedRSocket {
+            id = 'com.iamceph.springed.rsocket'
+            implementationClass = 'com.iamceph.springed.rsocket.SpringedRSocketPlugin'
+        }
+    }
+}
