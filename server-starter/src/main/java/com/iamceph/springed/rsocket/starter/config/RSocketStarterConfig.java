@@ -1,7 +1,8 @@
 package com.iamceph.springed.rsocket.starter.config;
 
+import com.iamceph.springed.rsocket.starter.model.ConnectionType;
+import com.iamceph.springed.rsocket.starter.model.PayloadDecoderType;
 import com.iamceph.springed.rsocket.starter.service.RSocketService;
-import io.rsocket.frame.decoder.PayloadDecoder;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -16,14 +17,15 @@ public class RSocketStarterConfig {
     /**
      * If the RSocket server should be enabled or not.
      */
-    private Boolean enabled = true;
+    private Boolean enabled = false;
     /**
      * Name of the server. Used in thread name.
      */
     private String serverName = "RSocket";
     /**
      * If custom service name from {@link RSocketService#customName()} should be applied to all services.
-     * This is a hackity way via reflection, use it on your own risk.
+     * This is a hackity way, it WILL throw "An illegal reflective access operation has occurred" in your logs.
+     * Beware and use it on your own risk.
      */
     private Boolean modifyServiceNames = false;
     /**
@@ -49,10 +51,6 @@ public class RSocketStarterConfig {
          */
         private String host = "localhost";
         /**
-         * Type of the connection
-         */
-        private ConnectionType connectionType = ConnectionType.TCP;
-        /**
          * How many seconds should we wait before shutting down the server.
          */
         private Integer shutdownWait = 0;
@@ -61,43 +59,13 @@ public class RSocketStarterConfig {
          */
         private Boolean supportResume = true;
         /**
+         * Which connection type should the starter use.
+         */
+        private ConnectionType connectionType = ConnectionType.TCP;
+        /**
          * What PayloadDecoder type should the starter use.
          */
         private PayloadDecoderType payloadDecoderType = PayloadDecoderType.DEFAULT;
-
-        /**
-         * Type of the connection
-         */
-        public enum ConnectionType {
-            TCP,
-            WEBSOCKET;
-
-            public boolean isTcp() {
-                return this == TCP;
-            }
-
-            public boolean isWebsocket() {
-                return this == WEBSOCKET;
-            }
-        }
-
-        /**
-         * Type of the {@link PayloadDecoder}
-         */
-        public enum PayloadDecoderType {
-            /**
-             * DEFAULT PayloadDecoder, defined in {@link PayloadDecoder#DEFAULT}
-             */
-            DEFAULT,
-            /**
-             * ZERO_COPY PayloadDecoder, defined in {@link PayloadDecoder#ZERO_COPY}
-             */
-            ZERO_COPY,
-            /**
-             * CUSTOM PayloadDecoder, you need to define this one as a Bean.
-             */
-            CUSTOM
-        }
     }
 
     @Getter

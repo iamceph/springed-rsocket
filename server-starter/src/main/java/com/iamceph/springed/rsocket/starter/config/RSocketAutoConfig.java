@@ -5,6 +5,6 @@ import org.springframework.context.annotation.Configuration;
 
 @Configuration
 @ComponentScan(value = "com.iamceph.springed.rsocket.starter")
-public class RSocketAutoConfiguration {
+public class RSocketAutoConfig {
 
 }

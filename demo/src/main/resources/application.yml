@@ -5,6 +5,7 @@ springed:
       connection-type: tcp
     security:
       enabled: false
+    modify-service-names: false
 logging:
   level:
     com.iamceph: TRACE

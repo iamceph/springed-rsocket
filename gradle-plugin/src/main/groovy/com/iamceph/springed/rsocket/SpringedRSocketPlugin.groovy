@@ -7,12 +7,12 @@ class SpringedRSocketPlugin implements Plugin<Project> {
 
     @Override
     void apply(Project project) {
-        project.extensions.create("springedRSocket", SpringedRSocketExtension)
+        def extension = project.extensions.create("springedRSocket", SpringedRSocketExtension)
 
         project.afterEvaluate {
             project.getPluginManager().withPlugin("java", plugin -> {
                 project.apply {
-                    it.from(getClass().getResource("/springed-rsocket.gradle"))
+                    it.from(getClass().getResource("/springed-rsocket-server.gradle"))
                 }
             })
         }

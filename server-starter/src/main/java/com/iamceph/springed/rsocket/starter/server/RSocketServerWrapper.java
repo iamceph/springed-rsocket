@@ -1,6 +1,10 @@
 package com.iamceph.springed.rsocket.starter.server;
 
 import com.iamceph.resulter.core.DataResultable;
+import com.iamceph.springed.rsocket.starter.builder.RSocketServerBuilder;
+import com.iamceph.springed.rsocket.starter.builder.RSocketTcpServerBuilder;
+import com.iamceph.springed.rsocket.starter.builder.RSocketWebsocketServerBuilder;
+import com.iamceph.springed.rsocket.starter.condition.RSocketEnabledCondition;
 import com.iamceph.springed.rsocket.starter.config.RSocketStarterConfig;
 import com.iamceph.springed.rsocket.starter.service.RSocketServicesManager;
 import io.rsocket.core.RSocketServer;
@@ -17,6 +21,7 @@ import lombok.var;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.SmartLifecycle;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Mono;
 import reactor.netty.resources.ConnectionProvider;
@@ -25,8 +30,9 @@ import reactor.netty.tcp.TcpServer;
 
 import java.util.Optional;
 
-@Slf4j
 @Component
+@Conditional(RSocketEnabledCondition.class)
+@Slf4j
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
 public class RSocketServerWrapper implements SmartLifecycle {
 
@@ -39,7 +45,9 @@ public class RSocketServerWrapper implements SmartLifecycle {
     private final Optional<RSocketTcpServerBuilder> customTcpServerBuilder;
     private final Optional<RSocketWebsocketServerBuilder> customWebsocketBuilder;
 
-    private CloseableChannel server;
+    private final Optional<Resume> customResume;
+
+    private CloseableChannel rSocketServer;
 
     @Override
     public void start() {
@@ -48,52 +56,21 @@ public class RSocketServerWrapper implements SmartLifecycle {
             return;
         }
 
-        log.info("Starting up RSocket server");
-        final var serverBuilder = RSocketServer.create();
-        final var socketAcceptor = new RequestHandlingRSocket();
+        log.info("Building RSocket server..");
 
-        context.getBeansOfType(AbstractRSocketService.class)
-                .values()
-                .forEach(socketAcceptor::withEndpoint);
-
-        serverBuilder.acceptor(((setup, sendingSocket) -> Mono.just(socketAcceptor)));
-        switch (config.getConnection().getPayloadDecoderType()) {
-            case CUSTOM: {
-                if (!customDecoder.isPresent()) {
-                    log.warn("CUSTOM PayloadDecoder is not present, using DEFAULT!");
-                    serverBuilder.payloadDecoder(PayloadDecoder.DEFAULT);
-                    return;
-                }
-                serverBuilder.payloadDecoder(customDecoder.get());
-                break;
-            }
-            case DEFAULT:
-                serverBuilder.payloadDecoder(PayloadDecoder.DEFAULT);
-                break;
-            case ZERO_COPY:
-                serverBuilder.payloadDecoder(PayloadDecoder.ZERO_COPY);
-                break;
+        final var buildResult = buildServer();
+        if (buildResult.isFail()) {
+            throw new UnsupportedOperationException("Failed to start RSocket server - " + buildResult.message());
         }
 
-        final var connection = config.getConnection();
-        DataResultable<CloseableChannel> builtServer;
-        if (connection.getConnectionType().isTcp()) {
-            log.debug("Building TCPServer for RSocket..");
-            builtServer = buildTcpServer(serverBuilder);
-        } else {
-            log.debug("Building Websocket for RSocket..");
-            builtServer = buildWebsocketServer(serverBuilder);
-        }
+        this.rSocketServer = buildResult.data();
 
-        builtServer.ifOk(
-                data -> this.server = data,
-                failResult -> {
-                    throw new UnsupportedOperationException("Cannot build RSocket server: " + builtServer.message(), builtServer.error());
-                });
-
+        //this will prevent the application from shutting down. :)
         final var waitingThread = new Thread(() -> {
-            log.info("RSocket server started, running on [{}]", server.address());
-            server.onClose()
+            final var address = rSocketServer.address();
+            log.info("RSocket server started, running on [{}]", address);
+
+            rSocketServer.onClose()
                     .onErrorResume(ex -> {
                         log.warn("Exception caught in RSocket onClose!", ex);
                         return Mono.empty();
@@ -112,15 +89,56 @@ public class RSocketServerWrapper implements SmartLifecycle {
         }
 
         log.info("Stopping RSocket server.");
-        server.dispose();
+        rSocketServer.dispose();
     }
 
     @Override
     public boolean isRunning() {
-        if (server == null) {
+        if (rSocketServer == null) {
             return false;
         }
-        return !server.isDisposed();
+        return !rSocketServer.isDisposed();
+    }
+
+    private DataResultable<CloseableChannel> buildServer() {
+        final var serverBuilder = RSocketServer.create();
+        //TODO
+        final var socketAcceptor = new RequestHandlingRSocket();
+
+        context.getBeansOfType(AbstractRSocketService.class)
+                .values()
+                .forEach(service -> {
+                    log.debug("Registering new service as endpoint for RSocket: {}", service.getClass().getSimpleName());
+                    socketAcceptor.withEndpoint(service);
+                });
+
+        serverBuilder.acceptor(((setup, sendingSocket) -> Mono.just(socketAcceptor)));
+
+        switch (config.getConnection().getPayloadDecoderType()) {
+            case CUSTOM: {
+                if (!customDecoder.isPresent()) {
+                    log.warn("CUSTOM PayloadDecoder is not present, using DEFAULT!");
+                    serverBuilder.payloadDecoder(PayloadDecoder.DEFAULT);
+                    break;
+                }
+                serverBuilder.payloadDecoder(customDecoder.get());
+                break;
+            }
+            case DEFAULT:
+                serverBuilder.payloadDecoder(PayloadDecoder.DEFAULT);
+                break;
+            case ZERO_COPY:
+                serverBuilder.payloadDecoder(PayloadDecoder.ZERO_COPY);
+                break;
+        }
+
+        if (config.getConnection().getConnectionType().isTcp()) {
+            log.debug("Building TCPServer for RSocket..");
+            return buildTcpServer(serverBuilder);
+        }
+
+        log.debug("Building Websocket for RSocket..");
+        return buildWebsocketServer(serverBuilder);
     }
 
     /**

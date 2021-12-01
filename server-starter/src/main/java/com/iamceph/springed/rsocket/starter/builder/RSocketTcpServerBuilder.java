@@ -1,4 +1,4 @@
-package com.iamceph.springed.rsocket.starter.server;
+package com.iamceph.springed.rsocket.starter.builder;
 
 import reactor.netty.tcp.TcpServer;
 

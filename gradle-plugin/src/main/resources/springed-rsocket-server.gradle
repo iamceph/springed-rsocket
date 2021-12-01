@@ -3,7 +3,9 @@ apply plugin: 'com.google.protobuf'
 def springedVersion = springedRSocket.getSpringedRsocketVersion()
 if (springedVersion != null) {
     project.dependencies {
-        implementation group: 'com.iamceph.springed.rsocket', name: 'starter', version: springedVersion
+        def starterType = springedRSocket.isServer() ? "server-starter" : "client-starter"
+
+        implementation group: 'com.iamceph.springed.rsocket', name: starterType, version: springedVersion
     }
 }
 

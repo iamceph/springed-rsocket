@@ -11,6 +11,7 @@ apply plugin: 'io.spring.dependency-management'
 
 dependencies {
     compileOnly group: 'org.jetbrains', name: 'annotations', version: JETBRAINS_ANNOTATIONS_VERSION
+    compileOnly group: 'org.springframework.boot', name: 'spring-boot-starter-actuator'
 
     api group: 'org.springframework.boot', name: 'spring-boot-starter'
 
