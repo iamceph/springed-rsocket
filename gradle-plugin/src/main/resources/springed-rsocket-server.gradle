@@ -12,14 +12,16 @@ def rsocketRpcDependencies = ["rsocket-ipc-core", "rsocket-ipc-protobuf", "rsock
 
 configurations.all {
     resolutionStrategy.eachDependency { details ->
-        if ("io.rsocket".equalsIgnoreCase(details.requested.group)) {
-            if (rsocketDependencies.contains(details.requested.name.toLowerCase())) {
-                details.useVersion springedRSocket.rsocketVersion
-            }
+        if (!"io.rsocket".equalsIgnoreCase(details.requested.group)) {
+            return
+        }
 
-            if (rsocketRpcDependencies.contains(details.requested.name.toLowerCase())) {
-                details.useVersion springedRSocket.rsocketRpcVersion
-            }
+        if (rsocketDependencies.contains(details.requested.name.toLowerCase())) {
+            details.useVersion springedRSocket.rsocketVersion
+        }
+
+        if (rsocketRpcDependencies.contains(details.requested.name.toLowerCase())) {
+            details.useVersion springedRSocket.rsocketRpcVersion
         }
     }
 }
