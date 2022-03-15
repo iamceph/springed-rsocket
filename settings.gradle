@@ -1,0 +1,14 @@
+pluginManagement {
+    repositories {
+        mavenLocal()
+        gradlePluginPortal()
+    }
+}
+
+rootProject.name = 'springed-rsocket'
+
+include 'gradle-plugin'
+include 'server-starter'
+include 'demo'
+include 'client-starter'
+

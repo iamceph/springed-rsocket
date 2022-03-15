@@ -1,0 +1,22 @@
+syntax = "proto3";
+
+package iamceph.proto;
+
+option java_multiple_files = true;
+option java_package = "com.iamceph.springed.rsocket.proto";
+
+import "google/protobuf/empty.proto";
+
+message TestIn {
+  string name = 1;
+}
+
+message TestOut {
+  string resp = 2;
+}
+
+service TestService {
+  rpc one(TestIn) returns (TestOut);
+
+  rpc all(google.protobuf.Empty) returns (stream TestOut);
+}

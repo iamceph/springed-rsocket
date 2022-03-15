@@ -1,0 +1,61 @@
+apply plugin: 'com.google.protobuf'
+
+def springedVersion = springedRSocket.getSpringedRsocketVersion()
+if (springedVersion != null) {
+    project.dependencies {
+        implementation group: 'com.iamceph.springed.rsocket', name: "server-starter", version: springedVersion
+    }
+}
+
+def rsocketDependencies = ["rsocket-core", "rsocket-transport-netty"]
+def rsocketRpcDependencies = ["rsocket-ipc-core", "rsocket-ipc-protobuf", "rsocket-rpc-core", "rsocket-rpc-protobuf"]
+
+configurations.all {
+    resolutionStrategy.eachDependency { details ->
+        if ("io.rsocket".equalsIgnoreCase(details.requested.group)) {
+            if (rsocketDependencies.contains(details.requested.name.toLowerCase())) {
+                details.useVersion springedRSocket.rsocketVersion
+            }
+
+            if (rsocketRpcDependencies.contains(details.requested.name.toLowerCase())) {
+                details.useVersion springedRSocket.rsocketRpcVersion
+            }
+        }
+    }
+}
+
+sourceSets.configureEach { s ->
+    java {
+        srcDir project.buildDir.toPath()
+                .resolve("generatedProto")
+                .resolve(s.name)
+                .resolve("java")
+                .toFile()
+
+        srcDir project.buildDir.toPath()
+                .resolve("generatedProto")
+                .resolve(s.name)
+                .resolve("grpc")
+                .toFile()
+    }
+}
+
+protobuf {
+    protoc {
+        artifact = "com.google.protobuf:protoc:${springedRSocket.protobufVersion}"
+    }
+
+    plugins {
+        rsocketRpc {
+            artifact = "io.rsocket.rpc:rsocket-rpc-protobuf:${springedRSocket.rsocketRpcVersion}"
+        }
+    }
+
+    generateProtoTasks {
+        all()*.plugins {
+            rsocketRpc {}
+        }
+    }
+
+    generatedFilesBaseDir = "${project.buildDir}/generatedProto"
+}

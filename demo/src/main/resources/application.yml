@@ -1,0 +1,12 @@
+springed:
+  rsocket:
+    connection:
+      port: 7878
+      connection-type: tcp
+    security:
+      enabled: false
+    modify-service-names: false
+    enabled: true
+logging:
+  level:
+    com.iamceph: TRACE
