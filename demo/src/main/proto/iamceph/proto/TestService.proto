@@ -3,7 +3,7 @@ syntax = "proto3";
 package iamceph.proto;
 
 option java_multiple_files = true;
-option java_package = "com.iamceph.springed.rsocket.demo";
+option java_package = "com.iamceph.springed.rsocket.proto";
 
 import "google/protobuf/empty.proto";
 

@@ -2,20 +2,56 @@ plugins {
     id 'idea'
     id 'java'
     id 'java-library'
+
+    id 'io.freefair.lombok' version '6.4.1'
+    id 'io.github.gradle-nexus.publish-plugin' version '1.1.0'
+    id "nebula.release" version "16.0.0"
 }
 
 allprojects {
-    group 'com.iamceph.springed.rsocket'
-    version '1.0.0-SNAPSHOT'
-
-    targetCompatibility = JavaVersion.VERSION_1_8
-    sourceCompatibility = JavaVersion.VERSION_1_8
-
-    apply plugin: 'idea'
-    apply plugin: 'java'
-    apply plugin: 'java-library'
+    group 'com.iamceph.springed'
 
     repositories {
         mavenCentral()
     }
+}
+
+nexusPublishing {
+    repositories {
+        sonatype {
+            username = System.getenv("NEXUS_USERNAME")
+            password = System.getenv("NEXUS_PASSWORD")
+
+            nexusUrl.set(uri("https://s01.oss.sonatype.org/service/local/"))
+            snapshotRepositoryUrl.set(uri("https://s01.oss.sonatype.org/content/repositories/snapshots/"))
+        }
+    }
+}
+
+subprojects {
+    apply plugin: 'java'
+    apply plugin: 'java-library'
+    apply plugin: 'idea'
+    apply plugin: 'signing'
+    apply plugin: 'io.freefair.lombok'
+
+    dependencies {
+        compileOnly group: 'org.jetbrains', name: 'annotations', version: JETBRAINS_ANNOTATIONS_VERSION
+
+        testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-engine', version: JUNIT_VERSION
+    }
+
+    test {
+        useJUnitPlatform()
+    }
+
+    java {
+        withSourcesJar()
+        withJavadocJar()
+    }
+
+    tasks.withType(JavaCompile,{
+        sourceCompatibility = JavaVersion.VERSION_1_8
+        targetCompatibility = JavaVersion.VERSION_1_8
+    })
 }

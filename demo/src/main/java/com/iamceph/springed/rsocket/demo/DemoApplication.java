@@ -1,12 +1,14 @@
 package com.iamceph.springed.rsocket.demo;
 
+import com.iamceph.springed.rsocket.starter.config.EnableRSocketRpc;
 import com.iamceph.springed.rsocket.starter.config.RSocketStarterConfig;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.stereotype.Service;
 
-@SpringBootApplication(scanBasePackages = "com.iamceph.springed.rsocket.demo")
+@EnableRSocketRpc(basePackages = "com.iamceph.springed.rsocket")
+@SpringBootApplication
 public class DemoApplication {
 
     public static void main(String[] args) {

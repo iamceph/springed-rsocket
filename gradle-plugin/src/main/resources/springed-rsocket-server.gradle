@@ -3,9 +3,7 @@ apply plugin: 'com.google.protobuf'
 def springedVersion = springedRSocket.getSpringedRsocketVersion()
 if (springedVersion != null) {
     project.dependencies {
-        def starterType = springedRSocket.isServer() ? "server-starter" : "client-starter"
-
-        implementation group: 'com.iamceph.springed.rsocket', name: starterType, version: springedVersion
+        implementation group: 'com.iamceph.springed.rsocket', name: "server-starter", version: springedVersion
     }
 }
 
@@ -26,7 +24,7 @@ configurations.all {
     }
 }
 
-sourceSets.configureEach{s->
+sourceSets.configureEach { s ->
     java {
         srcDir project.buildDir.toPath()
                 .resolve("generatedProto")

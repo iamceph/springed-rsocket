@@ -40,6 +40,7 @@ public class RSocketServicesManager implements ApplicationContextAware, Initiali
     @Override
     public void afterPropertiesSet() {
         final var config = context.getBean(RSocketStarterConfig.class);
+
         this.availableServices = SingletonSupplier.of(context.getBeansWithAnnotation(RSocketService.class)
                 .values()
                 .stream()

@@ -1,6 +1,9 @@
 package com.iamceph.springed.rsocket.demo;
 
 import com.google.protobuf.Empty;
+import com.iamceph.springed.rsocket.proto.TestIn;
+import com.iamceph.springed.rsocket.proto.TestOut;
+import com.iamceph.springed.rsocket.proto.TestService;
 import com.iamceph.springed.rsocket.starter.service.RSocketService;
 import io.netty.buffer.ByteBuf;
 import lombok.extern.slf4j.Slf4j;

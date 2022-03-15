@@ -1,8 +1,7 @@
 plugins {
     id 'com.iamceph.springed.rsocket' version '1.0.0-SNAPSHOT'
 
-    id 'org.springframework.boot' version '2.6.0'
-    id 'io.freefair.lombok' version '6.2.0'
+    id 'org.springframework.boot' version '2.6.4'
 }
 
 apply plugin: 'com.iamceph.springed.rsocket'

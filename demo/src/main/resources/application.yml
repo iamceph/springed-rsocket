@@ -6,6 +6,7 @@ springed:
     security:
       enabled: false
     modify-service-names: false
+    enabled: true
 logging:
   level:
     com.iamceph: TRACE
