@@ -1,5 +1,8 @@
 package com.iamceph.springed.rsocket.starter.model;
 
+/**
+ * A connection type.
+ */
 public enum ConnectionType {
     TCP,
     WEBSOCKET;

@@ -3,7 +3,6 @@ package com.iamceph.springed.rsocket.starter.service;
 import com.iamceph.springed.rsocket.starter.condition.RSocketEnabledCondition;
 import com.iamceph.springed.rsocket.starter.config.RSocketStarterConfig;
 import com.iamceph.springed.rsocket.starter.util.ReflectUtil;
-import io.rsocket.rpc.AbstractRSocketService;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import lombok.var;
@@ -29,8 +28,6 @@ public class RSocketServicesManager implements ApplicationContextAware, Initiali
     private ApplicationContext context;
 
     private Supplier<List<ServiceWrapper>> availableServices;
-
-    private Supplier<List<AbstractRSocketService>> availableRsocketServices;
 
     @Override
     public void setApplicationContext(@NotNull ApplicationContext context) throws BeansException {
@@ -79,7 +76,7 @@ public class RSocketServicesManager implements ApplicationContextAware, Initiali
         }
     }
 
-    public final static class ServiceWrapper {
+    public static final class ServiceWrapper {
         @Getter
         private final String name;
         @Getter
@@ -92,8 +89,8 @@ public class RSocketServicesManager implements ApplicationContextAware, Initiali
             this.name = name;
             this.service = service;
 
-            this.routes = SingletonSupplier.of(ReflectUtil.getFields(service, "ROUTE"));
-            this.methods = SingletonSupplier.of(ReflectUtil.getFields(service, "METHOD"));
+            this.routes = SingletonSupplier.of(ReflectUtil.getFields(service, "ROUTE", log));
+            this.methods = SingletonSupplier.of(ReflectUtil.getFields(service, "METHOD", log));
         }
 
         private List<String> getRoutes() {

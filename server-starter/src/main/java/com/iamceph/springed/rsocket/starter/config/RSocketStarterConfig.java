@@ -9,6 +9,8 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.NestedConfigurationProperty;
 import org.springframework.stereotype.Component;
 
+import java.time.Duration;
+
 @ConfigurationProperties("springed.rsocket")
 @Component
 @Getter
@@ -53,7 +55,7 @@ public class RSocketStarterConfig {
         /**
          * How many seconds should we wait before shutting down the server.
          */
-        private Integer shutdownWait = 0;
+        private Duration shutdownWait = Duration.ofSeconds(3);
         /**
          * If the {@link io.rsocket.core.Resume} functionality is supported.
          */

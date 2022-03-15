@@ -7,6 +7,7 @@ import com.iamceph.springed.rsocket.starter.builder.RSocketWebsocketServerBuilde
 import com.iamceph.springed.rsocket.starter.condition.RSocketEnabledCondition;
 import com.iamceph.springed.rsocket.starter.config.RSocketStarterConfig;
 import com.iamceph.springed.rsocket.starter.service.RSocketServicesManager;
+import com.iamceph.springed.rsocket.starter.util.ReflectUtil;
 import io.rsocket.core.RSocketServer;
 import io.rsocket.core.Resume;
 import io.rsocket.frame.decoder.PayloadDecoder;
@@ -17,6 +18,7 @@ import io.rsocket.transport.netty.server.TcpServerTransport;
 import io.rsocket.transport.netty.server.WebsocketServerTransport;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import lombok.val;
 import lombok.var;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
@@ -24,6 +26,7 @@ import org.springframework.context.SmartLifecycle;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Mono;
+import reactor.netty.DisposableChannel;
 import reactor.netty.resources.ConnectionProvider;
 import reactor.netty.tcp.TcpResources;
 import reactor.netty.tcp.TcpServer;
@@ -89,7 +92,16 @@ public class RSocketServerWrapper implements SmartLifecycle {
         }
 
         log.info("Stopping RSocket server.");
-        rSocketServer.dispose();
+
+        val channelResult = ReflectUtil.getField(rSocketServer, "channel", DisposableChannel.class);
+        if (channelResult.isFail()) {
+            log.debug("Cannot get internal DisposableChannel, disposing normally..");
+            rSocketServer.dispose();
+            return;
+        }
+
+        val channel = channelResult.data();
+        channel.disposeNow(config.getConnection().getShutdownWait());
     }
 
     @Override
@@ -102,7 +114,7 @@ public class RSocketServerWrapper implements SmartLifecycle {
 
     private DataResultable<CloseableChannel> buildServer() {
         final var serverBuilder = RSocketServer.create();
-        //TODO
+        //TODO - introduce a way to inject custom socket acceptor
         final var socketAcceptor = new RequestHandlingRSocket();
 
         context.getBeansOfType(AbstractRSocketService.class)
@@ -162,6 +174,7 @@ public class RSocketServerWrapper implements SmartLifecycle {
             }
 
             if (connection.getSupportResume()) {
+                //TODO: more configuration for resume
                 rsocketServer.resume(new Resume());
             }
 

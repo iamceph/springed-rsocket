@@ -1,8 +1,11 @@
 package com.iamceph.springed.rsocket.starter.config;
 
-import com.iamceph.springed.rsocket.starter.service.RSocketService;
+import io.rsocket.rpc.annotations.internal.Generated;
+import io.rsocket.rpc.annotations.internal.ResourceType;
+import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.jetbrains.annotations.NotNull;
+import org.springframework.beans.factory.annotation.AnnotatedBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.support.BeanNameGenerator;
 import org.springframework.context.EnvironmentAware;
@@ -21,9 +24,15 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 
 /**
- * If someone will be searching for this black magic fuckery, I searched for this way too long.
- * HERE YOU GO: https://stackoverflow.com/questions/61971497/spring-custom-enable-annotation-meta-annotated-with-componentscan
+ * Class for registering {@link io.rsocket.rpc.AbstractRSocketService} services.
+ * This is needed in order to actually use the service implementation and register it into the RSocker server.
+ * <p>
+ * I was searching a lot for this black magic fuckery, here is a credit for
+ * an awesome thread that helped me. I hope it will help you too :)
+ * <p>
+ * LINK: https://stackoverflow.com/questions/61971497/spring-custom-enable-annotation-meta-annotated-with-componentscan
  */
+@Slf4j
 public class EnableRSocketRpcRegistrar implements ImportBeanDefinitionRegistrar, EnvironmentAware {
     private static final BeanNameGenerator BEAN_NAME_GENERATOR = AnnotationBeanNameGenerator.INSTANCE;
     private Environment environment;
@@ -38,23 +47,52 @@ public class EnableRSocketRpcRegistrar implements ImportBeanDefinitionRegistrar,
                                         @NotNull BeanDefinitionRegistry registry) {
         val attributes = metadata.getAnnotationAttributes(EnableRSocketRpc.class.getCanonicalName());
         if (attributes == null) {
+            log.debug("No attributes for EnableRSocketRpc found, doing nothing.");
             return;
         }
 
         val annotationAttributes = new AnnotationAttributes(attributes);
         val provider = new ClassPathScanningCandidateComponentProvider(false, environment);
 
-        provider.addIncludeFilter(new AnnotationTypeFilter(RSocketService.class, true));
+        log.debug("Adding include filter for io.rsocket.rpc.annotations.internal.Generated annotation..");
+        provider.addIncludeFilter(new AnnotationTypeFilter(Generated.class, true));
 
         val basePackages = getBasePackages((StandardAnnotationMetadata) metadata, annotationAttributes);
-        basePackages.forEach(basePackage ->
-                provider.findCandidateComponents(basePackage)
-                        .forEach(beanDefinition -> {
-                            val beanClassName = BEAN_NAME_GENERATOR.generateBeanName(beanDefinition, registry);
-                            if (!registry.containsBeanDefinition(beanClassName)) {
-                                registry.registerBeanDefinition(beanClassName, beanDefinition);
-                            }
-                        }));
+        basePackages.stream()
+                .flatMap(basePackage -> provider.findCandidateComponents(basePackage).stream())
+                .filter(beanDefinition -> {
+                    val beanName = beanDefinition.getBeanClassName();
+                    val meta = ((AnnotatedBeanDefinition) beanDefinition).getMetadata();
+
+                    if (meta.hasAnnotation("io.rsocket.rpc.annotations.internal.Generated")) {
+                        val annotation = meta.getAnnotations().get(Generated.class);
+                        if (!annotation.isPresent()) {
+                            log.debug("Bean[{}] does not have [io.rsocket.rpc.annotations.internal.Generated] annotation, skipping.", beanName);
+                            return false;
+                        }
+
+                        val resourceType = annotation.getValue("type", ResourceType.class);
+                        if (resourceType.isPresent()) {
+                            val isService = resourceType.get() == ResourceType.SERVICE;
+                            log.debug("Bean[{}] is a RSocket service: {}", beanName, isService);
+
+                            return isService;
+                        }
+                        log.debug("Bean[{}] does not have [io.rsocket.rpc.annotations.internal.ResourceType] in Generated annotation, skipping.", beanName);
+                    }
+
+                    return false;
+                })
+                .forEach(beanDefinition -> {
+                    val beanName = beanDefinition.getBeanClassName();
+                    log.debug("Found RSocket Server bean: {}", beanName);
+
+                    val beanClassName = BEAN_NAME_GENERATOR.generateBeanName(beanDefinition, registry);
+                    if (!registry.containsBeanDefinition(beanClassName)) {
+                        log.debug("Registering RSocket server bean: {}", beanDefinition);
+                        registry.registerBeanDefinition(beanClassName, beanDefinition);
+                    }
+                });
     }
 
     private static Set<String> getBasePackages(StandardAnnotationMetadata metadata, AnnotationAttributes attributes) {
@@ -62,10 +100,11 @@ public class EnableRSocketRpcRegistrar implements ImportBeanDefinitionRegistrar,
         val packagesToScan = new LinkedHashSet<>(Arrays.asList(basePackages));
 
         if (packagesToScan.isEmpty()) {
-            // If value attribute is not set, fallback to the package of the annotated class
+            log.debug("No basePackages are defined, using annotated class package.");
             return Collections.singleton(metadata.getIntrospectedClass().getPackage().getName());
         }
 
+        log.debug("Packages to scan: {}", packagesToScan);
         return packagesToScan;
     }
 }

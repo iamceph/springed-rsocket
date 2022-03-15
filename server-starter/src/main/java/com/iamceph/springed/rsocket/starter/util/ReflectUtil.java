@@ -1,6 +1,9 @@
 package com.iamceph.springed.rsocket.starter.util;
 
+import com.iamceph.resulter.core.DataResultable;
 import lombok.experimental.UtilityClass;
+import lombok.val;
+import org.slf4j.Logger;
 
 import java.util.Arrays;
 import java.util.List;
@@ -18,18 +21,30 @@ public class ReflectUtil {
      * @param name    name of the field
      * @return list of methods/routes
      */
-    public List<String> getFields(Object service, String name) {
+    public List<String> getFields(Object service, String name, Logger log) {
         return Arrays.stream(service.getClass().getFields())
                 .filter(next -> next.getName().contains(name))
                 .map(next -> {
                     try {
                         return (String) next.get(null);
                     } catch (IllegalAccessException e) {
-                        e.printStackTrace();
+                        log.warn("Cannot get {} from service {}!", name, service.getClass().getSimpleName(), e);
                     }
                     return null;
                 })
                 .filter(Objects::nonNull)
                 .collect(Collectors.toList());
+    }
+
+    public <T> DataResultable<T> getField(Object service, String fieldName, Class<T> resultClass) {
+        try {
+            val field = service.getClass().getDeclaredField(fieldName);
+            field.setAccessible(true);
+
+            val toReturn = field.get(service);
+            return DataResultable.failIfNull(resultClass.cast(toReturn));
+        } catch (Exception e) {
+            return DataResultable.fail(e);
+        }
     }
 }

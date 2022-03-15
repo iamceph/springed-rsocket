@@ -3,6 +3,7 @@ springed:
     connection:
       port: 7878
       connection-type: tcp
+      shutdown-wait: "4s"
     security:
       enabled: false
     modify-service-names: false
