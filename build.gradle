@@ -9,7 +9,7 @@ plugins {
 }
 
 allprojects {
-    group 'com.iamceph.springed'
+    group 'com.iamceph.springed.rsocket'
 
     repositories {
         mavenCentral()
