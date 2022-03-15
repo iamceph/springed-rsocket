@@ -12,6 +12,8 @@ dependencies {
     compileOnly group: 'org.jetbrains', name: 'annotations', version: JETBRAINS_ANNOTATIONS_VERSION
     compileOnly group: 'org.springframework.boot', name: 'spring-boot-starter-actuator'
 
+    implementation group: 'com.iamceph.resulter', name: 'resulter', version: RESULTER_VERSION
+
     api group: 'org.springframework.boot', name: 'spring-boot-starter'
 
     api group: 'io.rsocket', name: 'rsocket-core', version: RSOCKET_VERSION
@@ -24,8 +26,6 @@ dependencies {
     api group: 'io.rsocket.rpc', name: 'rsocket-rpc-protobuf', version: RSOCKET_RPC_VERSION
 
     api group: 'com.google.protobuf', name: 'protobuf-java', version: PROTOBUF_VERSION
-
-    api group: 'com.iamceph.resulter', name: 'resulter', version: RESULTER_VERSION
 
     annotationProcessor group: 'org.springframework.boot', name: 'spring-boot-configuration-processor'
 }
