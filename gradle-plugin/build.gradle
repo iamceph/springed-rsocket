@@ -8,8 +8,8 @@ plugins {
 
 apply from: '../publishing.gradle'
 
-project['gradle.publish.key'] = System.getenv('PUBLISH_KEY')
-project['gradle.publish.secret'] = System.getenv('PUBLISH_SECRET')
+project.properties['gradle.publish.key'] = System.getenv('PUBLISH_KEY')
+project.properties['gradle.publish.secret'] = System.getenv('PUBLISH_SECRET')
 
 dependencies {
     compileOnly gradleApi()
