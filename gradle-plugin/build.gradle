@@ -2,16 +2,14 @@ plugins {
     id 'groovy'
     id 'java-gradle-plugin'
     id 'maven-publish'
+
+    id "com.gradle.plugin-publish" version "0.20.0"
 }
 
-defaultTasks 'clean', 'build'
+apply from: '../publishing.gradle'
 
-def publishing = System.getenv("PUBLISHING") == "1"
-if (!publishing) {
-    defaultTasks.add('publishToMavenLocal')
-} else {
-    defaultTasks.add('publish')
-}
+project['gradle.publish.key'] = System.getenv('PUBLISH_KEY')
+project['gradle.publish.secret'] = System.getenv('PUBLISH_SECRET')
 
 dependencies {
     compileOnly gradleApi()
@@ -25,6 +23,20 @@ gradlePlugin {
         springedRSocket {
             id = 'com.iamceph.springed.rsocket'
             implementationClass = 'com.iamceph.springed.rsocket.SpringedRSocketPlugin'
+            displayName = "RSocket RPC Spring Boot starter plugin"
+            description = "Automatically configures project with Springed RSocket starter."
         }
+    }
+}
+
+pluginBundle {
+    website = 'https://github.com/iamceph/springed-rsocket/tree/main/gradle-plugin'
+    vcsUrl = 'https://github.com/iamceph/springed-rsocket/tree/main/gradle-pluginn'
+    tags = ['rsocket', 'protobuf', 'spring-boot', 'rsocket-spring-starter', 'rsocket-rpc-starter']
+}
+
+tasks.withType(PublishToMavenRepository) {
+    if (name.contains("Sonatype")) {
+        enabled(false)
     }
 }

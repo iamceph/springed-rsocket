@@ -8,6 +8,8 @@ apply plugin: 'maven-publish'
 apply plugin: 'org.springframework.boot'
 apply plugin: 'io.spring.dependency-management'
 
+apply from: '../publishing.gradle'
+
 dependencies {
     compileOnly group: 'org.jetbrains', name: 'annotations', version: JETBRAINS_ANNOTATIONS_VERSION
     compileOnly group: 'org.springframework.boot', name: 'spring-boot-starter-actuator'
