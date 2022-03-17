@@ -8,8 +8,16 @@ plugins {
 
 apply from: '../publishing.gradle'
 
-System.setProperty("gradle.publish.key", System.getenv('GRADLE_PUBLISH_KEY'))
-System.setProperty("gradle.publish.secret", System.getenv('GRADLE_PUBLISH_SECRET'))
+def publishKey = System.getenv('GRADLE_PUBLISH_KEY')
+def publishSecret = System.getenv('GRADLE_PUBLISH_SECRET')
+if (publishSecret != null && publishKey != null) {
+    System.out.println("Setting publish key/secret.")
+    System.setProperty("gradle.publish.key", publishKey)
+    System.setProperty("gradle.publish.secret", publishSecret)
+} else {
+    System.out.println("Key/Secret not available for publishing!")
+}
+
 
 dependencies {
     compileOnly gradleApi()
