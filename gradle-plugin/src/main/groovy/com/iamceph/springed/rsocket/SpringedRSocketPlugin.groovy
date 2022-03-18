@@ -8,6 +8,7 @@ class SpringedRSocketPlugin implements Plugin<Project> {
     @Override
     void apply(Project project) {
         def extension = project.extensions.create("springedRSocket", SpringedRSocketExtension)
+        extension.springedRsocketVersion = determineVersion() ?: "1.0.1"
 
         project.afterEvaluate {
             project.getPluginManager().withPlugin("java", plugin -> {
@@ -16,5 +17,10 @@ class SpringedRSocketPlugin implements Plugin<Project> {
                 }
             })
         }
+    }
+
+    private static String determineVersion() {
+        def pack = SpringedRSocketPlugin.class.getPackage()
+        return pack != null ? pack.getImplementationVersion() : null
     }
 }

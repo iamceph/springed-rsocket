@@ -45,3 +45,10 @@ tasks.withType(PublishToMavenRepository) {
         enabled(false)
     }
 }
+
+jar {
+    manifest {
+        attributes('Implementation-Title': 'Springed RSocket plugin',
+                'Implementation-Version': "${project.version}")
+    }
+}
