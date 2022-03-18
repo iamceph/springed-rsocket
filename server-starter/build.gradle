@@ -1,5 +1,5 @@
 plugins {
-    id 'org.springframework.boot' version '2.6.4'
+    id 'org.springframework.boot' version "${SPRING_VERSION}"
 }
 
 apply plugin: 'java'
@@ -12,11 +12,11 @@ apply from: '../publishing.gradle'
 
 dependencies {
     compileOnly group: 'org.jetbrains', name: 'annotations', version: JETBRAINS_ANNOTATIONS_VERSION
-    compileOnly group: 'org.springframework.boot', name: 'spring-boot-starter-actuator'
+    compileOnly group: 'org.springframework.boot', name: 'spring-boot-starter-actuator', version: SPRING_VERSION
 
     implementation group: 'com.iamceph.resulter', name: 'resulter-core', version: RESULTER_VERSION
 
-    api group: 'org.springframework.boot', name: 'spring-boot-starter'
+    api group: 'org.springframework.boot', name: 'spring-boot-starter', version: SPRING_VERSION
 
     api group: 'io.rsocket', name: 'rsocket-core', version: RSOCKET_VERSION
     api group: 'io.rsocket', name: 'rsocket-transport-netty', version: RSOCKET_VERSION
